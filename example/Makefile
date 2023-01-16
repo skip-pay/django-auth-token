@@ -38,7 +38,7 @@ cleanall: cleanvar
 
 pip:
 	$(PYTHON_BIN)/pip install -r requirements.txt
-	$(PYTHON_BIN)/pip install -e ../.[msdal]
+	$(PYTHON_BIN)/pip install -e ../.[mssso]
 
 initvirtualenv:
 	virtualenv -p $(PYTHON) $(VIRTUAL_ENV)
