@@ -3,13 +3,13 @@ from setuptools import setup, find_packages
 from auth_token.version import get_version
 
 setup(
-    name='django-auth-token',
+    name='skip-django-auth-token',
     version=get_version(),
     description="Django authorization via tokens.",
     keywords='django, authorization',
     author='Lubos Matl',
     author_email='matllubos@gmail.com',
-    url='https://github.com/druids/django-auth-token',
+    url='https://github.com/skip-pay/django-auth-token',
     license='BSD',
     package_dir={'auth_token': 'auth_token'},
     include_package_data=True,
@@ -27,9 +27,9 @@ setup(
         'django>=2.2.14, <4.0',
         'django-ipware>=3.0.2',
         'import_string==0.1.0',
-        'django-chamber>=0.6.14',
-        'django-generic-m2m-field>=0.0.4',
-        'django-choice-enumfields>=1.1.0',
+        'skip-django-chamber>=0.6.16.3',
+        'skip-django-generic-m2m-field>=0.0.9.3',
+        'skip-django-choice-enumfields>=1.1.3.2',
         'tqdm>=4.62.3',
     ],
     extras_require={
