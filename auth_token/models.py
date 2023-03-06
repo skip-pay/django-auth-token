@@ -329,6 +329,11 @@ class MobileDevice(SmartModel):
                 is_primary=False
             )
 
+    def _post_save(self, changed, changed_fields, *args, **kwargs):
+        super()._post_save(changed, changed_fields, *args, **kwargs)
+        if 'is_active' in changed_fields and not self.is_active:
+            self.authorization_tokens.update(is_active=False)
+
     def set_login_token(self, raw_token):
         self.login_token = make_password(raw_token)
 

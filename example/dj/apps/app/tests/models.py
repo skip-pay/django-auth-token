@@ -88,3 +88,23 @@ class TokenTestCase(BaseTestCaseMixin, GermaniumTestCase):
         assert_true(mobile_device.login_token.startswith('pbkdf2_sha256'))
         assert_true(mobile_device.check_login_token('test'))
 
+    @data_consumer('create_user')
+    def test_deactivation_of_mobile_device_should_deactivate_its_authorization_tokens(self, user):
+        mobile_device = MobileDevice.objects.activate_or_create(uuid4, user, is_primary=True)
+        auth_token = AuthorizationToken.objects.create(
+            user=user, ip='127.0.0.1', backend='test', mobile_device=mobile_device
+        )
+
+        # make sure everything is active
+        assert_true(mobile_device.is_active)
+        assert_true(auth_token.refresh_from_db().is_active)
+
+        # deactivating mobile device must deactivate its authorization tokens
+        mobile_device.change_and_save(is_active=False)
+        assert_false(mobile_device.is_active)
+        assert_false(auth_token.refresh_from_db().is_active)
+
+        # activating mobile device must not activate its authorization tokens
+        mobile_device.change_and_save(is_active=True)
+        assert_true(mobile_device.is_active)
+        assert_false(auth_token.refresh_from_db().is_active)
