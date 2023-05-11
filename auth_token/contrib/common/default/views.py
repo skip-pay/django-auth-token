@@ -1,3 +1,5 @@
+from urllib.parse import quote_plus
+
 from django.contrib.auth.views import LoginView, LogoutView
 from django.utils.decorators import method_decorator
 from django.urls import reverse, NoReverseMatch
@@ -40,7 +42,7 @@ class TokenLoginView(LoginView):
             return [
                 {
                     'name': 'microsoft',
-                    'url': f'{reverse("ms-sso-login")}?next={self.request.GET.get("next", "/")}',
+                    'url': f'{reverse("ms-sso-login")}?next={quote_plus(self.request.GET.get("next", "/"), safe="/")}',
                     'label': gettext('Continue with Microsoft account')
                 }
             ]
