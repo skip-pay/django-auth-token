@@ -1,9 +1,9 @@
-Django<=3.2
-skip-django-germanium==2.3.6.1
-skip-django-security-logger==1.6.4
+Django~=4.2.0
+skip-django-germanium @ git+https://github.com/skip-pay/germanium@tda/chore/django_bump
+skip-django-security-logger @ git+https://github.com/skip-pay/django-security@tda/chore/django_bump
 coveralls
 flake8
-skip-django-is-core==2.24.6.1
-djangorestframework==3.12.2
+skip-django-is-core @ git+https://github.com/skip-pay/django-is-core@tda/chore/django_bump
+djangorestframework==3.14.0
 freezegun==1.0.0
 responses==0.22.0
