@@ -9,7 +9,7 @@ from operator import and_ as AND
 
 import import_string
 
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.conf import settings as django_settings
 from django.contrib.auth import _get_backends, load_backend
 from django.contrib.auth.models import AnonymousUser
@@ -273,7 +273,7 @@ def parse_auth_header_value(request):
     header_value = request.META.get(header_name_to_django(settings.HEADER_NAME))
 
     if not header_value:
-        raise ValueError('Authorization header missing')
+        raise PermissionDenied("Authorization header missing")
 
     if settings.HEADER_TOKEN_TYPE is None:
         return header_value

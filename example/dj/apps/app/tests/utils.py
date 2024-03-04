@@ -5,6 +5,7 @@ from datetime import timedelta
 
 from unittest import mock
 
+from django.core.exceptions import PermissionDenied
 from freezegun import freeze_time
 
 from django.core.management import call_command
@@ -168,7 +169,7 @@ class UtilsTestCase(BaseTestCaseMixin, GermaniumTestCase):
 
     def test_parse_auth_header_missing_value_should_raise_exception(self):
         request = self.requiest_factory.get('/')
-        with assert_raises(ValueError):
+        with assert_raises(PermissionDenied):
             parse_auth_header_value(request)
 
     def test_parse_auth_header_invalid_value_should_return_none(self):
