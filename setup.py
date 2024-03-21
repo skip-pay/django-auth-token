@@ -30,6 +30,7 @@ setup(
         'skip-django-chamber>=0.6.16.3',
         'skip-django-generic-m2m-field>=0.0.9.3',
         'skip-django-choice-enumfields>=1.1.3.2',
+        'skip-django-security-logger==1.6.4',
         'tqdm>=4.62.3',
     ],
     extras_require={
