@@ -8,8 +8,11 @@ from django.http import HttpResponseRedirect
 from django.views.generic.base import RedirectView
 from django.urls import reverse
 
+from security.decorators import throttling_all
+
 import import_string
 from auth_token.config import settings
+from auth_token.contrib.common.auth_security.validators import LOGIN_THROTTLING_VALIDATORS
 from auth_token.contrib.common.views import LoginView as _LoginView
 from auth_token.contrib.common.views import LogoutView as _LogoutView
 from auth_token.contrib.common.views import LoginCodeVerificationView as _LoginCodeVerificationView
@@ -85,6 +88,7 @@ class UserTakeover(GetDjangoObjectCoreViewMixin, DefaultCoreViewMixin, RedirectV
         return super().get(request, *args, **kwargs)
 
 
+@throttling_all(*LOGIN_THROTTLING_VALIDATORS)
 class LoginCodeVerificationView(_LoginCodeVerificationView):
 
     template_name = 'is_core/login.html'
