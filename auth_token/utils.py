@@ -86,7 +86,7 @@ def hash_key(key, salt=None):
         settings.HASH_SALT,
         key,
         secret='|'.join((salt or '', django_settings.SECRET_KEY)),
-        algorithm=django_settings.DEFAULT_HASHING_ALGORITHM,
+        algorithm="sha256",
     ).hexdigest()
 
 

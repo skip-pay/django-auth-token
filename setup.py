@@ -24,13 +24,13 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     install_requires=[
-        'django>=2.2.14, <4.0',
+        'django>=4.2.0',
         'django-ipware>=3.0.2',
         'import_string==0.1.0',
-        'skip-django-chamber>=0.6.16.3',
-        'skip-django-generic-m2m-field>=0.0.9.3',
+        'skip-django-chamber>=0.7.2',
+        'skip-django-generic-m2m-field>=0.1.0',
         'skip-django-choice-enumfields>=1.1.3.2',
-        'skip-django-security-logger==1.6.4',
+        'skip-django-security-logger>=1.7.0',
         'tqdm>=4.62.3',
     ],
     extras_require={

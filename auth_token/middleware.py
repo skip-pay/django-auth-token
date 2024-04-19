@@ -1,7 +1,7 @@
 from datetime import timedelta
 import time
 
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.functional import SimpleLazyObject
 from django.utils.http import http_date
 
@@ -47,7 +47,7 @@ class TokenAuthenticationMiddleware:
         if expires_at - request.token.expires_at >= timedelta(seconds=settings.EXPIRATION_DELTA):
             request.token.change_and_save(expires_at=expires_at, update_only_changed_fields=True)
         if settings.COOKIE and request.token.allowed_cookie:
-            response.set_cookie(settings.COOKIE_NAME, force_text(request.token.secret_key), max_age=max_age,
+            response.set_cookie(settings.COOKIE_NAME, force_str(request.token.secret_key), max_age=max_age,
                                 expires=expires, httponly=settings.COOKIE_HTTPONLY,
                                 secure=settings.COOKIE_SECURE, domain=settings.COOKIE_DOMAIN)
         return response

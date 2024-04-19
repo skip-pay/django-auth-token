@@ -60,11 +60,7 @@ class TokenLogoutView(LogoutView):
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
         logout(request)
-        next_page = self.get_next_page()
-        if next_page:
-            # Redirect to this page until the session has been cleared.
-            return HttpResponseRedirect(next_page)
-        return super(LogoutView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class InputLogMixin:

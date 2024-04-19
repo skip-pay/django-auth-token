@@ -1,9 +1,8 @@
-Django<=3.2
-skip-django-germanium==2.3.6.1
-skip-django-security-logger==1.6.4
+Django~=4.2.0
+skip-django-germanium==2.4.0
 coveralls
 flake8
-skip-django-is-core==2.24.6.1
-djangorestframework==3.12.2
+skip-django-is-core==2.25.0
+djangorestframework==3.14.0
 freezegun==1.0.0
 responses==0.22.0

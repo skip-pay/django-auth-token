@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.contrib.auth.hashers import make_password
 from django.test import override_settings
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from nose.tools import assert_equal
 
 from auth_token.config import settings

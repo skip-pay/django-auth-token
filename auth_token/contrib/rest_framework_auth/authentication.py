@@ -33,7 +33,10 @@ class AuthTokenAuthentication(BaseAuthentication):
         """
         Enforce CSRF validation for session based authentication.
         """
-        reason = CSRFCheck().process_view(request, None, (), {})
+
+        def dummy_get_response(_):  # pragma: no cover
+            return None
+        reason = CSRFCheck(dummy_get_response).process_view(request, None, (), {})
         if reason:
             # CSRF failed, bail with explicit error message
             raise exceptions.PermissionDenied('CSRF Failed: %s' % reason)
