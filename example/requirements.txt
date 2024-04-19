@@ -1,9 +1,8 @@
 Django~=4.2.0
-skip-django-germanium @ git+https://github.com/skip-pay/germanium@tda/chore/django_bump
-skip-django-security-logger @ git+https://github.com/skip-pay/django-security@tda/chore/django_bump
+skip-django-germanium==2.4.0
 coveralls
 flake8
-skip-django-is-core @ git+https://github.com/skip-pay/django-is-core@tda/chore/django_bump
+skip-django-is-core==2.25.0
 djangorestframework==3.14.0
 freezegun==1.0.0
 responses==0.22.0

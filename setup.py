@@ -27,10 +27,10 @@ setup(
         'django>=4.2.0',
         'django-ipware>=3.0.2',
         'import_string==0.1.0',
-        'skip-django-chamber @ git+https://github.com/skip-pay/django-chamber@tda/chore/django_bump',
-        'skip-django-generic-m2m-field @ git+https://github.com/skip-pay/django-generic-m2m-field@tda/chore/django_bump',
+        'skip-django-chamber>=0.7.2',
+        'skip-django-generic-m2m-field>=0.1.0',
         'skip-django-choice-enumfields>=1.1.3.2',
-        'skip-django-security-logger @ git+https://github.com/skip-pay/django-security@tda/chore/django_bump',
+        'skip-django-security-logger>=1.7.0',
         'tqdm>=4.62.3',
     ],
     extras_require={
