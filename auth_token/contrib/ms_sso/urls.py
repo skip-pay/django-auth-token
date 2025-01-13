@@ -1,17 +1,27 @@
 from django.urls import path
 
-from .views import MsCallback, MsLogin
+from .views import OauthMsCallback, OauthMsLogin, SamlMsCallback, SamlMsLogin
 
 
 urlpatterns = [
     path(
         'login/mso',
-        MsLogin.as_view(),
+        OauthMsLogin.as_view(),
         name='ms-sso-login',
     ),
     path(
         'login/mso/callback',
-        MsCallback.as_view(),
+        OauthMsCallback.as_view(),
         name='ms-sso-redirect',
+    ),
+    path(
+        'login/mso/saml',
+        SamlMsLogin.as_view(),
+        name='ms-sso-saml-login',
+    ),
+    path(
+        'login/mso/saml/callback',
+        SamlMsCallback.as_view(),
+        name='ms-sso-saml-redirect',
     ),
 ]

@@ -1,13 +1,14 @@
 from urllib.parse import quote_plus
 
 from django.contrib.auth.views import LoginView, LogoutView
-from django.utils.decorators import method_decorator
-from django.urls import reverse, NoReverseMatch
-from django.utils.translation import gettext
 from django.http import HttpResponseRedirect
+from django.urls import NoReverseMatch
+from django.utils.decorators import method_decorator
+from django.utils.translation import gettext
 from django.views.decorators.cache import never_cache
 
 from auth_token.contrib.common.forms import TokenAuthenticationForm
+from auth_token.contrib.ms_sso.helpers import get_ms_sso_login_url
 from auth_token.utils import login, logout
 
 
@@ -42,7 +43,7 @@ class TokenLoginView(LoginView):
             return [
                 {
                     'name': 'microsoft',
-                    'url': f'{reverse("ms-sso-login")}?next={quote_plus(self.request.GET.get("next", "/"), safe="/")}',
+                    'url': f'{get_ms_sso_login_url()}?next={quote_plus(self.request.GET.get("next", "/"), safe="/")}',
                     'label': gettext('Continue with Microsoft account')
                 }
             ]
