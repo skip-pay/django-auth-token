@@ -34,7 +34,7 @@ jobs:
     - name: Run Tests
       run: |
         cd example
-        coverage run --omit */site-packages/*,*/migrations/*,*/lib/* manage.py test app.tests --settings=dj.settings.settings -v 2
+        coverage run --omit */site-packages/*,*/migrations/*,*/lib/* manage.py test app.tests --settings=dj.settings.test -v 2
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:

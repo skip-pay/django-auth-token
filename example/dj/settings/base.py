@@ -228,7 +228,8 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'auth_token.backends.DeviceBackend',
-    'auth_token.contrib.ms_sso.backends.MsSsoBackend',
+    'auth_token.contrib.ms_sso.backends.OauthMsSsoBackend',
+    'auth_token.contrib.ms_sso.backends.SamlMsSsoBackend',
 )
 
 

@@ -21,7 +21,7 @@ known_third_party=factory,ipware,responses,requests,nose,south,coverage,six,suds
 multi_line_output=5
 lines_after_imports=2
 known_django=django
-sections=STDLIB,THIRDPARTY,DJANGO,GERMANIUM
+sections=FUTURE,STDLIB,DJANGO,THIRDPARTY,FIRSTPARTY,LOCALFOLDER
 
 [*.{sass,scss,cljs,clj}]
 indent_style = space
