@@ -270,7 +270,7 @@ class SamlMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
             assert_true(response.wsgi_request.user.is_authenticated)
 
     @httpretty.activate
-    def test_saml_auth_should_be_correclty_initialized(self):
+    def test_saml_auth_should_be_correctly_initialized(self):
         self._register_metadata_url(httpretty)
         auth = init_saml_auth(RequestFactory().get('/'))
         service_provider_settings = auth._settings._sp
@@ -279,3 +279,5 @@ class SamlMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
             service_provider_settings['assertionConsumerService']['url'],
             'http://testserver/login/mso/saml/callback',
         )
+        security_settings = auth._settings._security
+        assert_equal(security_settings['requestedAuthnContext'], False)
