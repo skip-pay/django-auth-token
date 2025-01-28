@@ -73,9 +73,10 @@ def init_saml_auth(request):
     service_provider_settings = {
         'strict': True,
         'debug': django_settings.DEBUG,
-        **({'security': {
-            'allowSingleLabelDomains': True,
-        }} if getattr(django_settings, "AUTH_TOKEN_TEST", False) else {}),
+        'security': {
+            'requestedAuthnContext': False,  # do not enforce any particular authentication method
+            **({'allowSingleLabelDomains': True} if getattr(django_settings, "AUTH_TOKEN_TEST", False) else {}),
+        },
         'sp': {
             'entityId': settings.MS_SSO_SAML_ENTITY_ID,
             'assertionConsumerService': {
