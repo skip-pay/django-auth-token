@@ -49,7 +49,7 @@ class AuthenticationMixin:
         username = self.cleaned_data.get(self.username_field_name)
         password = self.cleaned_data.get('password')
         if username and password:
-            self.user_cache = authenticate(username=username, password=password)
+            self.user_cache = authenticate(request=self.request, username=username, password=password)
             if self.user_cache is None:
                 raise forms.ValidationError(
                     self.error_messages['invalid_login'],
