@@ -34,7 +34,7 @@ setup(
         'tqdm>=4.62.3',
     ],
     extras_require={
-        'mssso': ['requests>=2.26.0', 'msal>=1.20.0', 'python3-saml>=1.16.0', 'xmlsec==1.3.14', 'lxml<5.3.0'],
+        'mssso': ['requests>=2.26.0', 'msal>=1.20.0', 'python3-saml>=1.16.0', 'xmlsec>=1.3.12', 'lxml<5.3.0'],
     },
     zip_safe=False
 )
