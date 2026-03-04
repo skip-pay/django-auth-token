@@ -5,22 +5,22 @@ from .views import OauthMsCallback, OauthMsLogin, SamlMsCallback, SamlMsLogin
 
 urlpatterns = [
     path(
-        'login/mso',
+        'internal-login/mso',
         OauthMsLogin.as_view(),
         name='ms-sso-login',
     ),
     path(
-        'login/mso/callback',
+        'internal-login/mso/callback',
         OauthMsCallback.as_view(),
         name='ms-sso-redirect',
     ),
     path(
-        'login/mso/saml',
+        'internal-login/mso/saml',
         SamlMsLogin.as_view(),
         name='ms-sso-saml-login',
     ),
     path(
-        'login/mso/saml/callback',
+        'internal-login/mso/saml/callback',
         SamlMsCallback.as_view(),
         name='ms-sso-saml-redirect',
     ),
