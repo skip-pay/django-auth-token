@@ -1,8 +1,7 @@
-Django~=4.2.0
-skip-django-germanium==2.4.0
+skip-django-germanium==2.6.0
 coveralls
 flake8
-skip-django-is-core==2.25.0
+skip-django-is-core==2.29.0
 djangorestframework==3.14.0
 freezegun==1.0.0
 responses==0.22.0
