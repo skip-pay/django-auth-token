@@ -213,6 +213,7 @@ To allow MS SSO authentization you must install package with msal ``django-auth-
 
     AUTH_TOKEN_MS_SSO_APP_ID = '__ your app id __'
     AUTH_TOKEN_MS_SSO_TENANT_ID = '__ your tenant id __'
+    AUTH_TOKEN_MS_SSO_BASE_URL = '__ your msso base url __'  # default 'login'
 
 
 Next you must include ``auth_token.contrib.ms_sso.urls`` in your URLS settings::

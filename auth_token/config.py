@@ -67,6 +67,7 @@ DEFAULTS = {
     'MS_SSO_TENANT_ID': None,  # Set TentnatID for MS SSO authentication (OAuth only)
     'MS_SSO_SAML_METADATA_URL': None,  # Set Metadata URL for MS SSO authentication (SAML only)
     'MS_SSO_SAML_ENTITY_ID': None,  # Set Entity ID for MS SSO authentication (SAML only)
+    'MS_SSO_BASE_URL': 'login',  # Set base MS SSO authentication login
 }
 
 

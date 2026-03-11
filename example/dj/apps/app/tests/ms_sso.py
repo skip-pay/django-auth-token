@@ -110,7 +110,7 @@ class OauthMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
                 'nonce': 'testnonce',
                 'claims_challenge': None
             }
-            response = self.get('/login/mso')
+            response = self.get('/test-login/mso')
             assert_equal(response.status_code, 302)
             assert_equal(response['location'], 'https://login.microsoftonline.com/test/oauth2/v2.0/authorize')
             with patch('auth_token.contrib.ms_sso.views.acquire_token_by_auth_code_flow') \
@@ -129,7 +129,7 @@ class OauthMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
                         responses.GET, 'https://graph.microsoft.com/v1.0/me', status=200,
                         content_type='application/json', json=user_data
                     )
-                    response = self.get('/login/mso/callback')
+                    response = self.get('/test-login/mso/callback')
                     assert_equal(response.wsgi_request.user, user)
                     assert_equal(response.status_code, 302)
                     assert_equal(response['location'], '/')
@@ -145,30 +145,30 @@ class OauthMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
                 'nonce': 'testnonce',
                 'claims_challenge': None
             }
-            response = self.get('/login/mso')
+            response = self.get('/test-login/mso')
             assert_equal(response.status_code, 302)
             assert_equal(response['location'], 'https://login.microsoftonline.com/test/oauth2/v2.0/authorize')
             with patch('auth_token.contrib.ms_sso.views.acquire_token_by_auth_code_flow') \
                     as mocked_acquire_token_by_auth_code_flow:
                 mocked_acquire_token_by_auth_code_flow.return_value = {}
-                response = self.get('/login/mso/callback')
+                response = self.get('/test-login/mso/callback')
                 assert_false(response.wsgi_request.user.is_authenticated)
                 assert_equal(response.status_code, 302)
                 assert_equal(response['location'], '/accounts/login/?next=/')
 
     def test_login_mso_callback_without_sign_flow_should_not_log_user(self):
-        response = self.get('/login/mso/callback')
+        response = self.get('/test-login/mso/callback')
         assert_false(response.wsgi_request.user.is_authenticated)
         assert_equal(response.status_code, 302)
         assert_equal(response['location'], '/accounts/login/?next=/')
 
     def test_get_ms_sso_login_url_should_return_correct_url_for_oauth(self):
-        assert_equal(get_ms_sso_login_url(), '/login/mso')
+        assert_equal(get_ms_sso_login_url(), '/test-login/mso')
 
     @override_settings(AUTH_TOKEN_MS_SSO_PROTOCOL='saml')
     def test_endpoints_for_oauth_should_return_404_if_this_protocol_is_not_set(self):
-        assert_equal(self.c.get('/login/mso').status_code, 404)
-        assert_equal(self.c.get('/login/mso/callback').status_code, 404)
+        assert_equal(self.c.get('/test-login/mso').status_code, 404)
+        assert_equal(self.c.get('/test-login/mso/callback').status_code, 404)
 
 
 @override_settings(AUTH_TOKEN_MS_SSO_PROTOCOL='saml')
@@ -204,7 +204,7 @@ class SamlMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
         self._register_metadata_url(httpretty)
 
         # verify we're redirected to the identity provider
-        response = self.get('/login/mso/saml?next=/dashboard')
+        response = self.get('/test-login/mso/saml?next=/dashboard')
         assert_equal(response.status_code, 302)
         assert_true(response['location'].startswith(
             'https://login.microsoftonline.com/54311acb-4c14-4e2a-ba36-fcd4de0bffa2/saml2'
@@ -213,7 +213,7 @@ class SamlMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
         # POST payload is dynamic and signed, not easy to mock, therefore we mock auth object instead
         with patch('auth_token.contrib.ms_sso.backends.init_saml_auth') as init_mock:
             init_mock.return_value = self._get_auth_mock()
-            response = self.post('/login/mso/saml/callback', data={'RelayState': ['/dashboard']})
+            response = self.post('/test-login/mso/saml/callback', data={'RelayState': ['/dashboard']})
             assert_equal(response.status_code, 302)
             assert_equal(response['location'], '/dashboard')
             assert_equal(response.wsgi_request.user, user)
@@ -225,7 +225,7 @@ class SamlMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
 
             # repeated request (replay attack) 1 second before timeout, must not succeed
             with freeze_time(localtime() + timedelta(minutes=59, seconds=59), tick=True):
-                response = self.post('/login/mso/saml/callback', data={'RelayState': ['/dashboard']})
+                response = self.post('/test-login/mso/saml/callback', data={'RelayState': ['/dashboard']})
                 assert_equal(response.status_code, 302)
                 assert_equal(response['location'], '/accounts/login/?next=/dashboard')
                 assert_not_equal(response.wsgi_request.user, user)
@@ -245,25 +245,25 @@ class SamlMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
         for user in User.objects.all():
             with patch('auth_token.contrib.ms_sso.backends.SamlMsSsoBackend._get_natural_key') as mock:
                 mock.return_value = 'john@doe.com'
-                response = self.post('/login/mso/saml/callback', data={'RelayState': ['/dashboard']})
+                response = self.post('/test-login/mso/saml/callback', data={'RelayState': ['/dashboard']})
                 assert_equal(response.status_code, 302)
                 assert_equal(response['location'], '/accounts/login/?next=/dashboard')
                 assert_not_equal(response.wsgi_request.user, user)
                 assert_false(response.wsgi_request.user.is_authenticated)
 
     def test_get_ms_sso_login_url_should_return_correct_url_for_saml(self):
-        assert_equal(get_ms_sso_login_url(), '/login/mso/saml')
+        assert_equal(get_ms_sso_login_url(), '/test-login/mso/saml')
 
     @override_settings(AUTH_TOKEN_MS_SSO_PROTOCOL='oauth')
     def test_endpoints_for_saml_should_return_404_if_this_protocol_is_not_set(self):
-        assert_equal(self.c.get('/login/mso/saml').status_code, 404)
-        assert_equal(self.c.get('/login/mso/saml/callback').status_code, 404)
+        assert_equal(self.c.get('/test-login/mso/saml').status_code, 404)
+        assert_equal(self.c.get('/test-login/mso/saml/callback').status_code, 404)
 
     def test_saml_should_prevent_open_redirect_attack(self):
         user = self.create_user(username='john@doe.com')
         with patch('auth_token.contrib.ms_sso.backends.SamlMsSsoBackend._get_natural_key') as mock:
             mock.return_value = 'john@doe.com'
-            response = self.post('/login/mso/saml/callback', data={'RelayState': ['http://example.com/dashboard']})
+            response = self.post('/test-login/mso/saml/callback', data={'RelayState': ['http://example.com/dashboard']})
             assert_equal(response.status_code, 302)
             assert_equal(response['location'], '/')  # absolute URL is ignored, fallback to '/'
             assert_equal(response.wsgi_request.user, user)
@@ -277,7 +277,7 @@ class SamlMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
         assert_equal(service_provider_settings['entityId'], 'My Test App')
         assert_equal(
             service_provider_settings['assertionConsumerService']['url'],
-            'http://testserver/login/mso/saml/callback',
+            'http://testserver/test-login/mso/saml/callback',
         )
         security_settings = auth._settings._security
         assert_equal(security_settings['requestedAuthnContext'], False)
