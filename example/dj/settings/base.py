@@ -239,3 +239,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 AUTH_TOKEN_MS_SSO_APP_ID = 'testappid'
 AUTH_TOKEN_MS_SSO_TENANT_ID = 'testtenantid'
+AUTH_TOKEN_MS_SSO_BASE_URL = 'test-login'
