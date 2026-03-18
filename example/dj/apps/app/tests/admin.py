@@ -28,6 +28,6 @@ class AdminLoginISCoreTestCase(BaseTestCaseMixin, ClientTestCase):
         assert_in('Authorization', self.c.cookies)
         assert_false(AuthorizationToken.objects.last().allowed_header)
         assert_true(AuthorizationToken.objects.last().allowed_cookie)
-        assert_http_ok(self.post(self.LOGOUT_URL, {}))
+        assert_http_ok(self.get(self.LOGOUT_URL))
         assert_http_redirect(self.get(self.INDEX_URL))
 

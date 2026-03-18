@@ -216,7 +216,7 @@ class UILoginISCoreTestCase(BaseTestCaseMixin, ClientTestCase):
         resp = self.post(self.UI_LOGIN_URL, {'username': 'test', 'password': 'test'})
         assert_http_redirect(resp)
         assert_http_ok(self.get(self.INDEX_URL))
-        assert_http_ok(self.post(self.UI_LOGOUT_URL, {}))
+        assert_http_ok(self.get(self.UI_LOGOUT_URL))
         assert_http_redirect(self.get(self.INDEX_URL))
 
     @override_settings(AUTH_TOKEN_TWO_FACTOR_ENABLED=True)
