@@ -1,5 +1,10 @@
+from django.core.exceptions import PermissionDenied
+
 from auth_token.config import settings
-from auth_token.utils import create_otp, deactivate_otp, get_valid_otp, otp_key_generator_factory
+from auth_token.utils import (
+    cancel_authorization_request, create_otp, deactivate_otp,
+    get_otp_qs, get_valid_otp, otp_key_generator_factory,
+)
 from auth_token.models import MobileDevice
 
 
@@ -74,15 +79,37 @@ class OTPAuthorizationRequestBackend(BaseAuthorizationRequestBackend):
         otp = self._create_otp(authorization_request)
         authorization_request.secret_key = otp.secret_key
 
-    def authenticate(self, authorization_request, otp_secret_key=None, **kwargs):
+    def authenticate(self, authorization_request, otp_secret_key=None, deactivate_otp_on_success=True, **kwargs):
         if otp_secret_key is None:
             return False
 
         if (settings.AUTHORIZATION_REQUEST_OTP_DEBUG_CODE
                 and settings.AUTHORIZATION_REQUEST_OTP_DEBUG_CODE == otp_secret_key):
-            otp_secret_key = None
+            return True
 
-        otp = get_valid_otp(authorization_request.slug, key=otp_secret_key, related_objects=[authorization_request])
+        otp = get_valid_otp(
+            authorization_request.slug,
+            key=otp_secret_key,
+            related_objects=[authorization_request],
+            deactivate=deactivate_otp_on_success,
+        )
+
+        if otp is None and settings.MAX_OTP_ATTEMPTS is not None:
+            create_otp(
+                authorization_request.slug,
+                expiration=(authorization_request.expires_at - authorization_request.created_at).total_seconds(),
+                related_objects=[authorization_request],
+                deactivate_old=False,
+                key_generator=settings.AUTHORIZATION_OTP_BACKEND_DEFAULT_KEY_GENERATOR,
+            )
+            otp_count = get_otp_qs(
+                slug=authorization_request.slug,
+                related_objects=[authorization_request],
+            ).count()
+            if otp_count > settings.MAX_OTP_ATTEMPTS:
+                cancel_authorization_request(authorization_request)
+                raise PermissionDenied
+
         return otp is not None
 
     def _deactivate(self, authorization_request):

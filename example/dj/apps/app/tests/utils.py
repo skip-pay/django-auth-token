@@ -576,6 +576,45 @@ class UtilsTestCase(BaseTestCaseMixin, GermaniumTestCase):
 
     @freeze_time(now())
     @data_consumer('create_user')
+    def test_check_authorization_request_with_otp_should_deactivate_otp_on_success(self, user):
+        authorization_request = create_authorization_request(
+            'test', user, 'test',
+            backend_path='auth_token.authorization_request.backends.OTPAuthorizationRequestBackend'
+        )
+        secret_key = authorization_request.secret_key
+        # OTP is consumed on successful check
+        assert_true(check_authorization_request(authorization_request, otp_secret_key=secret_key))
+        # Same OTP can no longer be used
+        assert_false(check_authorization_request(authorization_request, otp_secret_key=secret_key))
+
+    @freeze_time(now())
+    @data_consumer('create_user')
+    @override_settings(AUTH_TOKEN_MAX_OTP_ATTEMPTS=3)
+    def test_check_authorization_request_with_otp_should_cancel_after_max_failed_attempts(self, user):
+        authorization_request = create_authorization_request(
+            'test', user, 'test',
+            backend_path='auth_token.authorization_request.backends.OTPAuthorizationRequestBackend'
+        )
+        # Each failed attempt creates an extra OTP; initial + 3 failures = 4 total > MAX_OTP_ATTEMPTS=3
+        assert_false(check_authorization_request(authorization_request, otp_secret_key='wrong1'))
+        assert_false(check_authorization_request(authorization_request, otp_secret_key='wrong2'))
+        with assert_raises(PermissionDenied):
+            check_authorization_request(authorization_request, otp_secret_key='wrong3')
+        assert_equal(authorization_request.refresh_from_db().state, AuthorizationRequestState.CANCELLED)
+
+    @freeze_time(now())
+    @data_consumer('create_user')
+    def test_check_authorization_request_with_otp_should_not_cancel_when_max_attempts_not_set(self, user):
+        authorization_request = create_authorization_request(
+            'test', user, 'test',
+            backend_path='auth_token.authorization_request.backends.OTPAuthorizationRequestBackend'
+        )
+        for _ in range(10):
+            assert_false(check_authorization_request(authorization_request, otp_secret_key='wrong'))
+        assert_equal(authorization_request.refresh_from_db().state, AuthorizationRequestState.WAITING)
+
+    @freeze_time(now())
+    @data_consumer('create_user')
     def test_authorization_reset_create_new_otp_key_and_increase_expiration(self, user):
         authorization_request = create_authorization_request(
             'test', user, 'test',
