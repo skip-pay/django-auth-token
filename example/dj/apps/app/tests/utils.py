@@ -8,6 +8,8 @@ from unittest import mock
 from django.core.exceptions import PermissionDenied
 from freezegun import freeze_time
 
+from auth_token.exceptions import MaxOTPAttemptsExceeded
+
 from django.core.management import call_command
 from django.utils.timezone import now
 from django.test import override_settings
@@ -573,6 +575,46 @@ class UtilsTestCase(BaseTestCaseMixin, GermaniumTestCase):
             assert_false(check_authorization_request(authorization_request,
                                                      otp_secret_key=authorization_request.secret_key))
             assert_equal(authorization_request.state, AuthorizationRequestState.EXPIRED)
+
+    @freeze_time(now())
+    @data_consumer('create_user')
+    def test_check_authorization_request_with_otp_should_deactivate_otp_on_success(self, user):
+        authorization_request = create_authorization_request(
+            'test', user, 'test',
+            backend_path='auth_token.authorization_request.backends.OTPAuthorizationRequestBackend'
+        )
+        secret_key = authorization_request.secret_key
+        # OTP is consumed on successful check
+        assert_true(check_authorization_request(authorization_request, otp_secret_key=secret_key))
+        # Same OTP can no longer be used
+        assert_false(check_authorization_request(authorization_request, otp_secret_key=secret_key))
+
+    @freeze_time(now())
+    @data_consumer('create_user')
+    @override_settings(AUTH_TOKEN_MAX_OTP_ATTEMPTS=3)
+    def test_check_authorization_request_with_otp_should_cancel_after_max_failed_attempts(self, user):
+        authorization_request = create_authorization_request(
+            'test', user, 'test',
+            backend_path='auth_token.authorization_request.backends.OTPAuthorizationRequestBackend'
+        )
+        # First 2 failed attempts are within the limit
+        assert_false(check_authorization_request(authorization_request, otp_secret_key='wrong1'))
+        assert_false(check_authorization_request(authorization_request, otp_secret_key='wrong2'))
+        # 3rd failed attempt reaches MAX_OTP_ATTEMPTS=3, request is cancelled
+        with assert_raises(MaxOTPAttemptsExceeded):
+            check_authorization_request(authorization_request, otp_secret_key='wrong3')
+        assert_equal(authorization_request.refresh_from_db().state, AuthorizationRequestState.CANCELLED)
+
+    @freeze_time(now())
+    @data_consumer('create_user')
+    def test_check_authorization_request_with_otp_should_not_cancel_when_max_attempts_not_set(self, user):
+        authorization_request = create_authorization_request(
+            'test', user, 'test',
+            backend_path='auth_token.authorization_request.backends.OTPAuthorizationRequestBackend'
+        )
+        for _ in range(10):
+            assert_false(check_authorization_request(authorization_request, otp_secret_key='wrong'))
+        assert_equal(authorization_request.refresh_from_db().state, AuthorizationRequestState.WAITING)
 
     @freeze_time(now())
     @data_consumer('create_user')

@@ -49,6 +49,7 @@ DEFAULTS = {
     'OTP_DEFAULT_KEY_GENERATOR': 'auth_token.utils.generate_otp_key',  # Default key generator for OTP
     'OTP_EXPIRATION_RETENTION_PERIOD': 0,  # Expired tokens are deleted immediately
 
+    'MAX_OTP_ATTEMPTS': None,  # Maximum number of failed OTP attempts before cancelling authorization request
     'DEFAULT_AUTHORIZATION_REQUEST_AGE': 60 * 60,  # Default authorization request expiration time (default: 1 hour),
     'AUTHORIZATION_REQUEST_PRESERVE_AGE': 60 * 60 * 24 * 7,  # Keep expired authorization requests in database
                                                              # (default: 7 days)
