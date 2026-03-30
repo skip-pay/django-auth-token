@@ -465,6 +465,10 @@ class AuthorizationRequest(SmartModel):
         null=True,
         blank=True
     )
+    failed_attempts = models.PositiveIntegerField(
+        verbose_name=_('failed attempts'),
+        default=0,
+    )
     related_objects = GenericManyToManyField()
 
     class Meta:

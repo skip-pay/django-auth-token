@@ -283,3 +283,33 @@ class UILoginISCoreTestCase(BaseTestCaseMixin, ClientTestCase):
             code_check_resp._container[0].decode('utf8')
         )
         assert_false(code_check_resp.wsgi_request.token.is_authenticated)
+
+    @override_settings(AUTH_TOKEN_TWO_FACTOR_ENABLED=True)
+    @override_settings(
+        AUTH_TOKEN_TWO_FACTOR_SENDING_FUNCTION='app.tests.is_core.UILoginISCoreTestCase.send_two_factor_token')
+    @override_settings(AUTH_TOKEN_MAX_OTP_ATTEMPTS=3)
+    @data_consumer('create_user')
+    def test_user_should_be_redirected_to_login_after_max_otp_attempts_exceeded(self, user):
+        login_resp = self.post(self.UI_TWO_FACTOR_LOGIN_URL, {'username': 'test', 'password': 'test'})
+
+        assert_http_redirect(login_resp)
+        assert_false(login_resp.wsgi_request.user.is_authenticated)
+
+        # First two wrong attempts return form error without exceeding the limit
+        for __ in range(2):
+            resp = self.post(self.UI_CODE_CHECK_LOGIN_URL, {'code': 'wrong_code'})
+            assert_http_ok(resp)
+            assert_false(resp.wsgi_request.token.is_authenticated)
+
+        # Third wrong attempt reaches MAX_OTP_ATTEMPTS and triggers a redirect to login
+        code_check_resp = self.post(self.UI_CODE_CHECK_LOGIN_URL, {'code': 'wrong_code'})
+
+        assert_http_redirect(code_check_resp)
+        assert_in('/is_core/login/', code_check_resp['Location'])
+        assert_false(code_check_resp.wsgi_request.token.is_authenticated)
+
+        login_page_resp = self.get(code_check_resp['Location'])
+        assert_in(
+            _('Maximum number of verification attempts reached. Please log in again.'),
+            login_page_resp._container[0].decode('utf8')
+        )

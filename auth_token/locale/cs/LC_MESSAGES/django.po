@@ -63,6 +63,10 @@ msgstr "kód"
 msgid "The inserted value does not correspond to the sent code."
 msgstr "Vložená hodnota neodpovídá zaslanému kódu."
 
+#: contrib/is_core_auth/views.py:104
+msgid "Maximum number of verification attempts reached. Please log in again."
+msgstr "Dosáhli jste maximálního počtu pokusů o ověření. Přihlaste se prosím znovu."
+
 #: contrib/ms_sso/views.py:35 contrib/ms_sso/views.py:40
 msgid "Microsoft SSO login was unsuccessful, please try it again"
 msgstr "Přihlášení pomocí Microsoft účtu bylo neúspěšné, prosím zkuste to znovu"

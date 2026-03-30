@@ -1,10 +1,12 @@
 from urllib.parse import quote_plus
 
 from django import forms
+from django.contrib import messages
 from django.contrib.auth import login as auth_login
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorList
 from django.http import HttpResponseRedirect
+from django.utils.translation import gettext as _
 from django.views.generic.base import RedirectView
 from django.urls import reverse
 
@@ -17,6 +19,7 @@ from auth_token.contrib.common.views import LoginView as _LoginView
 from auth_token.contrib.common.views import LogoutView as _LogoutView
 from auth_token.contrib.common.views import LoginCodeVerificationView as _LoginCodeVerificationView
 from auth_token.contrib.is_core_auth.forms import LoginCodeVerificationForm
+from auth_token.exceptions import MaxOTPAttemptsExceeded
 from auth_token.utils import create_authorization_request, grant_authorization_request, login, takeover
 
 from is_core.generic_views.base import DefaultCoreViewMixin
@@ -93,6 +96,17 @@ class LoginCodeVerificationView(_LoginCodeVerificationView):
 
     template_name = 'is_core/login.html'
     form_class = LoginCodeVerificationForm
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except MaxOTPAttemptsExceeded:
+            messages.error(request, _('Maximum number of verification attempts reached. Please log in again.'))
+            return HttpResponseRedirect('{url}?{redirect_field_name}={value}'.format(
+                url=reverse('IS:login'),
+                redirect_field_name=self.redirect_field_name,
+                value=self.get_redirect_url(),
+            ))
 
     def form_valid(self, form):
         self.log_successful_request()
