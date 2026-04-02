@@ -84,7 +84,7 @@ class OTPAuthorizationRequestBackend(BaseAuthorizationRequestBackend):
 
         if (settings.AUTHORIZATION_REQUEST_OTP_DEBUG_CODE
                 and settings.AUTHORIZATION_REQUEST_OTP_DEBUG_CODE == otp_secret_key):
-            return True
+            otp_secret_key = None
 
         otp = get_valid_otp(
             authorization_request.slug,

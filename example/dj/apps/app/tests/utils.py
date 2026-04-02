@@ -565,10 +565,17 @@ class UtilsTestCase(BaseTestCaseMixin, GermaniumTestCase):
         assert_equal(authorization_request.state, AuthorizationRequestState.WAITING)
         assert_false(check_authorization_request(authorization_request))
         assert_false(check_authorization_request(authorization_request, otp_secret_key='invalid'))
-        assert_true(check_authorization_request(authorization_request,
-                                                otp_secret_key=authorization_request.secret_key))
+        assert_true(check_authorization_request(
+            authorization_request,
+            otp_secret_key=authorization_request.secret_key,
+            deactivate_otp_on_success=False
+        ))
         with override_settings(AUTH_TOKEN_AUTHORIZATION_REQUEST_OTP_DEBUG_CODE='invalid'):
-            assert_true(check_authorization_request(authorization_request, otp_secret_key='invalid'))
+            assert_true(check_authorization_request(
+                authorization_request,
+                otp_secret_key='invalid',
+                deactivate_otp_on_success=False,
+            ))
 
         with freeze_time(now() + timedelta(hours=1, seconds=1)):
             # Expired authorization
@@ -584,10 +591,19 @@ class UtilsTestCase(BaseTestCaseMixin, GermaniumTestCase):
             backend_path='auth_token.authorization_request.backends.OTPAuthorizationRequestBackend'
         )
         secret_key = authorization_request.secret_key
-        # OTP is consumed on successful check
         assert_true(check_authorization_request(authorization_request, otp_secret_key=secret_key))
-        # Same OTP can no longer be used
         assert_false(check_authorization_request(authorization_request, otp_secret_key=secret_key))
+
+    @freeze_time(now())
+    @data_consumer('create_user')
+    def test_check_authorization_request_with_debug_code_should_deactivate_otp_on_success(self, user):
+        authorization_request = create_authorization_request(
+            'test', user, 'test',
+            backend_path='auth_token.authorization_request.backends.OTPAuthorizationRequestBackend'
+        )
+        with override_settings(AUTH_TOKEN_AUTHORIZATION_REQUEST_OTP_DEBUG_CODE='123456'):
+            assert_true(check_authorization_request(authorization_request, otp_secret_key='123456'))
+            assert_false(check_authorization_request(authorization_request, otp_secret_key='123456'))
 
     @freeze_time(now())
     @data_consumer('create_user')
