@@ -1,9 +1,7 @@
 from auth_token.contrib.common.views import LoginView as _LoginView
 from auth_token.contrib.common.views import LogoutView as _LogoutView
 from auth_token.utils import login, logout
-from rest_framework.compat import coreapi, coreschema
 from rest_framework.response import Response
-from rest_framework.schemas import ManualSchema
 from rest_framework.views import APIView
 
 from .serializers import (
@@ -17,39 +15,6 @@ class LoginAuthToken(APIView):
     permission_classes = ()
     authentication_classes = ()
     serializer_class = AuthTokenSerializer
-    if coreapi is not None and coreschema is not None:
-        schema = ManualSchema(
-            fields=[
-                coreapi.Field(
-                    name='username',
-                    required=True,
-                    location='form',
-                    schema=coreschema.String(
-                        title='Username',
-                        description='Valid username for authentication',
-                    ),
-                ),
-                coreapi.Field(
-                    name='password',
-                    required=True,
-                    location='form',
-                    schema=coreschema.String(
-                        title='Password',
-                        description='Valid password for authentication',
-                    ),
-                ),
-                coreapi.Field(
-                    name='permanent',
-                    required=False,
-                    location='form',
-                    schema=coreschema.Boolean(
-                        title='Permanent',
-                        description='Define if login can expire',
-                    ),
-                ),
-            ],
-            encoding='application/json',
-        )
     allowed_cookie = False
     allowed_header = True
 
@@ -71,30 +36,6 @@ class MobileLoginAuthToken(APIView):
     permission_classes = ()
     authentication_classes = ()
     serializer_class = MobileAuthTokenSerializer
-    if coreapi is not None and coreschema is not None:
-        schema = ManualSchema(
-            fields=[
-                coreapi.Field(
-                    name='uuid',
-                    required=True,
-                    location='form',
-                    schema=coreschema.String(
-                        title='Device UUID',
-                        description='Valid device UUID for authentication',
-                    ),
-                ),
-                coreapi.Field(
-                    name='login_device_token',
-                    required=True,
-                    location='form',
-                    schema=coreschema.String(
-                        title='Password',
-                        description='Valid token for authentication',
-                    ),
-                ),
-            ],
-            encoding='application/json',
-        )
     allowed_cookie = False
     allowed_header = True
 
@@ -122,21 +63,6 @@ class LogoutAuthToken(APIView):
 class MobileRegisterToken(APIView):
 
     serializer_class = MobileAuthTokenRegisterSerializer
-    if coreapi is not None and coreschema is not None:
-        schema = ManualSchema(
-            fields=[
-                coreapi.Field(
-                    name='uuid',
-                    required=True,
-                    location='form',
-                    schema=coreschema.String(
-                        title='Device UUID',
-                        description='Valid device UUID for authentication',
-                    ),
-                ),
-            ],
-            encoding='application/json',
-        )
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
