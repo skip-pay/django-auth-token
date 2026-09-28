@@ -24,7 +24,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     install_requires=[
-        'django>=5.2.0',
+        'django>=4.2.0',
         'django-ipware>=3.0.2',
         'import_string==0.1.0',
         'skip-django-chamber>=1.2.1',
