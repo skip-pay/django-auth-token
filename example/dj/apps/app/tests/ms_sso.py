@@ -1,6 +1,7 @@
 import time
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
+from urllib.parse import parse_qs, urlsplit
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -17,6 +18,7 @@ from germanium.tools import assert_equal, assert_false, assert_is_none, assert_n
 from auth_token.config import settings
 from auth_token.contrib.ms_sso.backends import OauthMsSsoBackend
 from auth_token.contrib.ms_sso.helpers import get_ms_sso_login_url, get_user_data, init_saml_auth
+from auth_token.contrib.ms_sso.views import MAX_REDIRECT_URL_LENGTH
 
 from .base import BaseTestCaseMixin
 
@@ -27,7 +29,43 @@ __all__ = (
 )
 
 
+UNSAFE_NEXT_URLS = (
+    'http://example.com/dashboard',
+    '//example.com/dashboard',
+    '/\\example.com/dashboard',
+    'javascript:alert(1)',
+    '/' + 'a' * MAX_REDIRECT_URL_LENGTH,
+)
+
+
 class OauthMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
+
+    SIGN_IN_FLOW = {
+        'state': 'state',
+        'redirect_uri': None,
+        'scope': ['openid', 'profile', 'user.read', 'offline_access'],
+        'auth_uri': 'https://login.microsoftonline.com/test/oauth2/v2.0/authorize',
+        'code_verifier': 'testverifier',
+        'nonce': 'testnonce',
+        'claims_challenge': None
+    }
+
+    def _login_with_next(self, next_url):
+        with patch('auth_token.contrib.ms_sso.views.get_sign_in_flow') as mocked_get_sign_in_flow:
+            mocked_get_sign_in_flow.return_value = dict(self.SIGN_IN_FLOW)
+            response = self.c.get('/test-login/mso', data={'next': next_url})
+            assert_equal(response.status_code, 302)
+            assert_equal(response['location'], self.SIGN_IN_FLOW['auth_uri'])
+
+        with patch('auth_token.contrib.ms_sso.views.acquire_token_by_auth_code_flow') \
+                as mocked_acquire_token_by_auth_code_flow:
+            mocked_acquire_token_by_auth_code_flow.return_value = {'access_token': 'token'}
+            with responses.RequestsMock() as resp:
+                resp.add(
+                    responses.GET, 'https://graph.microsoft.com/v1.0/me', status=200,
+                    content_type='application/json', json={'userPrincipalName': 'test'}
+                )
+                return self.c.get('/test-login/mso/callback')
 
     def test_get_user_data_should_return_none_for_invalid_ms_response(self):
         with responses.RequestsMock() as resp:
@@ -133,6 +171,39 @@ class OauthMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
                     assert_equal(response.wsgi_request.user, user)
                     assert_equal(response.status_code, 302)
                     assert_equal(response['location'], '/')
+
+    def test_login_mso_callback_should_redirect_to_next_url(self):
+        user = self.create_user()
+        response = self._login_with_next('/dashboard?tab=1')
+        assert_equal(response.wsgi_request.user, user)
+        assert_equal(response.status_code, 302)
+        assert_equal(response['location'], '/dashboard?tab=1')
+
+    def test_login_mso_callback_should_prevent_open_redirect_attack_and_too_long_redirect(self):
+        user = self.create_user()
+        for next_url in UNSAFE_NEXT_URLS:
+            response = self._login_with_next(next_url)
+            assert_equal(response.wsgi_request.user, user)
+            assert_equal(response.status_code, 302)
+            assert_equal(response['location'], '/')
+
+    def test_login_mso_callback_should_ignore_unsafe_next_url_stored_in_session(self):
+        user = self.create_user()
+        session = self.c.session
+        session['auth_token_ms_sso_auth_flow'] = {**self.SIGN_IN_FLOW, 'next': 'http://example.com/dashboard'}
+        session.save()
+        with patch('auth_token.contrib.ms_sso.views.acquire_token_by_auth_code_flow') \
+                as mocked_acquire_token_by_auth_code_flow:
+            mocked_acquire_token_by_auth_code_flow.return_value = {'access_token': 'token'}
+            with responses.RequestsMock() as resp:
+                resp.add(
+                    responses.GET, 'https://graph.microsoft.com/v1.0/me', status=200,
+                    content_type='application/json', json={'userPrincipalName': 'test'}
+                )
+                response = self.c.get('/test-login/mso/callback')
+        assert_equal(response.wsgi_request.user, user)
+        assert_equal(response.status_code, 302)
+        assert_equal(response['location'], '/')
 
     def test_login_mso_callback_without_access_token_should_not_log_user(self):
         with patch('auth_token.contrib.ms_sso.views.get_sign_in_flow') as mocked_get_sign_in_flow:
@@ -268,6 +339,41 @@ class SamlMsSsoTestCase(BaseTestCaseMixin, ClientTestCase):
             assert_equal(response['location'], '/')  # absolute URL is ignored, fallback to '/'
             assert_equal(response.wsgi_request.user, user)
             assert_true(response.wsgi_request.user.is_authenticated)
+
+    def test_saml_should_prevent_open_redirect_attack_and_too_long_redirect(self):
+        user = self.create_user(username='john@doe.com')
+        for next_url in UNSAFE_NEXT_URLS:
+            with patch('auth_token.contrib.ms_sso.backends.SamlMsSsoBackend._get_natural_key') as mock:
+                mock.return_value = 'john@doe.com'
+                response = self.post('/test-login/mso/saml/callback', data={'RelayState': [next_url]})
+                assert_equal(response.status_code, 302)
+                assert_equal(response['location'], '/')
+                assert_equal(response.wsgi_request.user, user)
+
+    def _get_saml_login_relay_state(self, next_url):
+        response = self.c.get('/test-login/mso/saml', data={'next': next_url})
+        assert_equal(response.status_code, 302)
+        assert_true(response['location'].startswith(
+            'https://login.microsoftonline.com/54311acb-4c14-4e2a-ba36-fcd4de0bffa2/saml2'
+        ))
+        return parse_qs(urlsplit(response['location']).query)['RelayState']
+
+    @httpretty.activate
+    def test_saml_login_should_send_next_url_to_identity_provider(self):
+        self._register_metadata_url(httpretty)
+        assert_equal(self._get_saml_login_relay_state('/dashboard'), ['/dashboard'])
+
+    @httpretty.activate
+    def test_saml_login_should_replace_unsafe_next_url_with_default(self):
+        self._register_metadata_url(httpretty)
+        for next_url in UNSAFE_NEXT_URLS:
+            assert_equal(self._get_saml_login_relay_state(next_url), ['/'])
+
+    @httpretty.activate
+    def test_saml_login_should_replace_next_url_with_default_if_redirect_url_is_too_long(self):
+        self._register_metadata_url(httpretty)
+        # Next URL itself is short enough, but quoted in the identity provider URL it exceeds the redirect limit
+        assert_equal(self._get_saml_login_relay_state('/' + '%' * (MAX_REDIRECT_URL_LENGTH // 2)), ['/'])
 
     @httpretty.activate
     def test_saml_auth_should_be_correctly_initialized(self):
