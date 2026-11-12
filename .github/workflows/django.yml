@@ -13,8 +13,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.11, 3.12]
-        include:
-          - django-version: Django~=5.2
+        django-version: ["Django~=4.2", "Django~=5.2"]
 
     steps:
     - uses: actions/checkout@v2
